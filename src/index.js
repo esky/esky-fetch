@@ -51,9 +51,6 @@ export default {
 	init: (conf) => {
 		Object.assign(defaultConfig, conf);
 	},
-	fetch: (url, fetchConf, config) => {
-		return crtFetch(config).fetch(url, fetchConf);
-	},
 	get: (url, params, fetchConf, config) => {
 		return crtFetch(config).get(url, params, fetchConf);
 	},

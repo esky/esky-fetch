@@ -1,17 +1,24 @@
 {
-	"name": "nsip-fetch",
-	"version": "1.0.6",
-	"dependencies": {
-		"isomorphic-fetch": "^2.2.1"
-	},
-	"main": "index.js",
-	"scripts": {
-		
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://git.ms.netease.com/nsip-core/fetch.git"
-	},
-	"author": "esky",
-	"license": "ISC"
+  "name": "esky-fetch",
+  "version": "1.0.0",
+  "description": "基于fetch的全平台兼容库，同时具备良好的开发体验",
+  "main": "index.js",
+  "keywords": [
+    "esky",
+    "fetch"
+  ],
+  "author": "esky",
+  "license": "MIT",
+  "dependencies": {
+   	"isomorphic-fetch": "^2.2.1"
+  },
+  "scripts": {},
+  "homepage": "https://github.com/esky/esky-fetch",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/esky/esky-fetch.git"
+  },
+  "engines": {
+    "node": ">=4.00"
+  }
 }
