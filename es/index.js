@@ -7,5 +7,5 @@
  * 
  * 兼容nodejs平台
  */
-import 'isomorphic-fetch'
-export { default } from './lib'
+import 'isomorphic-fetch';
+export { default } from './lib';

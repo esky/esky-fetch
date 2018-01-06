@@ -19,7 +19,7 @@ const defaultConfig = {
 	// function(err){}
 	rejectHandler: null,
 	// 超时毫秒数
-	timeout: 10*1000,
+	timeout: 10*60*1000,
 	timeoutMsg: '请求超时',
 	abortMsg: '请求被忽略',
 	// 是否可忽略

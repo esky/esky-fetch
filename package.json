@@ -1,24 +1,26 @@
 {
-  "name": "esky-fetch",
-  "version": "1.0.0",
-  "description": "基于fetch的全平台兼容库，同时具备良好的开发体验",
-  "main": "index.js",
-  "keywords": [
-    "esky",
-    "fetch"
-  ],
-  "author": "esky",
-  "license": "MIT",
-  "dependencies": {
-   	"isomorphic-fetch": "^2.2.1"
-  },
-  "scripts": {},
-  "homepage": "https://github.com/esky/esky-fetch",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/esky/esky-fetch.git"
-  },
-  "engines": {
-    "node": ">=4.00"
-  }
+	"name": "nsip-fetch",
+	"version": "1.2.0",
+	"main": "lib/index.js",
+	"module": "es/index.js",
+	"scripts": {
+		"build": "npm run build:commonjs && npm run build:es",
+		"build:commonjs": "rm -rf lib && cross-env BABEL_ENV=commonjs babel src --out-dir lib",
+		"build:es": "rm -rf es && cross-env BABEL_ENV=es babel src --out-dir es"
+	},
+	"dependencies": {
+		"isomorphic-fetch": "^2.2.1"
+	},
+	"devDependencies": {
+		"babel-cli": "^6.18.0",
+		"babel-preset-es2015": "^6.14.0",
+		"babel-preset-stage-1": "^6.5.0",
+		"cross-env": "^5.0.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://git.ms.netease.com/nsip-core/fetch.git"
+	},
+	"author": "esky",
+	"license": "ISC"
 }

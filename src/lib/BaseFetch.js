@@ -12,7 +12,6 @@
  */
 
 const defaultConfig = {
-	type: 'json',
 	/**
 	 * 请求host或前缀
 	 * 1. 请求域名+前缀，如 //www.xxx.com/api
@@ -37,6 +36,19 @@ const defaultConfig = {
 	 * 参数序列化之后的处理器
 	 */
 	afterUrlParamHandler: null,
+	/**
+	 * 发送请求前，有返回值则不再发请求
+	 * 可以拿到请求地址和参数，返回promise自己来发请求
+	 * Fetch.create({ beforeFetchHandler: function(url, fetchConf){
+	 * 		return ajaxPromise()
+	 * }, resoleHandler: null }).then(rs)
+	 */
+	beforeFetchHandler: null,
+	/**
+	 * 格式化函数
+	 * formatHandler(res, contentType)
+	 */
+	formatHandler: null,
 	// 请求状态消息文案
 	statusMsg: {},
 	/**
@@ -54,10 +66,14 @@ export default class BaseFetch {
 	srcUrl = ''
 	// 未处理前的参数对象
 	srcParams = null
-	// 待发送的参数对象（处理后的）
+	// 待发送的参数对象（处理后的，最终参数对象）
 	handledParams = null
 	// 最终发送的body
 	bodyParam = null
+	// 当前响应对象
+	response = null
+	// 当前响应类型 json text blob
+	responseType = ''
 	constructor(conf) {
 		// 当前启用fetch的promise对象
 		this.fetchPromise = null;
@@ -68,12 +84,25 @@ export default class BaseFetch {
 	 * 发送请求
 	 */
 	fetch(url, fetchConf = {}) {
+		let { beforeFetchHandler } = this.config;
 		this.url = url;
 		// 私有配置fetchConf与默认配置合并
 		this.fetchConf = Object.assign({}, this.config.fetchConf, fetchConf);
-		this.fetchPromise = fetch(url, this.fetchConf)
+		// 请求前的处理
+		if (beforeFetchHandler) {
+			// 最后一次机会修改this.url, this.fetchConf
+			let beforeFetchRs = beforeFetchHandler.call(this, this.url, this.fetchConf);
+			// 有返回值则组件自身不发请求，直接使用返回值
+			if (beforeFetchRs !== undefined) {
+				// 为promise则使用
+				if (this.isPromise(beforeFetchRs)) return beforeFetchRs;
+				// 不是promise则包装成promise
+				return Promise.resolve(beforeFetchRs);
+			}
+		}
+		this.fetchPromise = fetch(this.url, this.fetchConf)
 			.then(this.checkErr.bind(this))
-			.then(this.foramt.bind(this));
+			.then(this.format.bind(this));
 		return this.fetchPromise;
 	}
 	/**
@@ -85,7 +114,7 @@ export default class BaseFetch {
 	get(url, params = {}, fetchConf = {}) {
 		let bodyParam = this.handParam(params, url);
 		url = this.fillUrl(url);
-		return this.fetchBodyParam({ method: 'GET' }, url, bodyParam, fetchConf);
+		return this.fetchBodyParam({ method: 'GET', isParam2Url: true }, url, bodyParam, fetchConf);
 	}
 	/**
 	 * 适用于大部分场景 
@@ -117,6 +146,14 @@ export default class BaseFetch {
 			}
 		}
 		return this.fetchBodyParam(conf, url, bodyParam, fetchConf);
+	}
+	put(url, params = {}, fetchConf = {}) {
+		fetchConf = Object.assign({ method: 'PUT' }, fetchConf);
+		return this.post(url, params, fetchConf)
+	}
+	delete(url, params = {}, fetchConf = {}) {
+		fetchConf = Object.assign({ method: 'DELETE' }, fetchConf);
+		return this.get(url, params, fetchConf)
 	}
 	/**
 	 * 表单提交，适用于文件上传等
@@ -157,10 +194,11 @@ export default class BaseFetch {
 		return this.fetchBodyParam(conf, url, bodyParam, fetchConf);
 	}
 	fetchBodyParam(conf, url, bodyParam, fetchConf) {
-		let method = conf.method || fetchConf.method;
+		// 参数是否拼接到URI
+		let isParam2Url = conf.isParam2Url || fetchConf.isParam2Url;
 		let bodyHandler = fetchConf.body;
 		let bodyParamHandler = bodyParam => {
-			if (method === 'GET') {
+			if (isParam2Url) {
 				return this.fetch(this.fillParam2Url(url, bodyParam), Object.assign(conf, fetchConf))
 			} else {
 				// body可以是函数
@@ -254,6 +292,7 @@ export default class BaseFetch {
 		let { statusMsg } = this.config
 		if (!res || res.status != 200) {
 			return Promise.reject({
+				type: 'status',
 				status: '' + res.status,
 				msg: statusMsg[res.status + ''] || '网络请求异常',
 				response: res
@@ -262,12 +301,33 @@ export default class BaseFetch {
 		return res;
 	}
 	/**
-	 * 格式化
+	 * 默认的格式化
+	 * 自动处理对应类型的响应
+	 * 自定义则使用formatHandler
 	 */
-	foramt(res) {
-		if (this.config.type === 'json') {
+	format(res) {
+		let contentType = res.headers.get('Content-Type');
+		// 保存当前响应对象
+		this.response = res;
+		// 自定义格式化
+		let selfRes, formatHandler = this.config.formatHandler;
+		if (formatHandler) {
+			selfRes = formatHandler.call(this, res, contentType);
+			if (selfRes) return selfRes;
+		}
+		if (/json/.test(contentType)) {
+			this.responseType = 'json';
 			return res.json();
 		}
+		if (/text/.test(contentType)) {
+			this.responseType = 'text';
+			return res.text();
+		}
+		if (/image/.test(contentType)) {
+			this.responseType = 'blob';
+			return res.blob();
+		}
+		// 其它类型 自己处理 比如：视频等 arrayBuffer()
 		return res;
 	}
 	/**

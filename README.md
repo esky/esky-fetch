@@ -1,2 +1,6 @@
-# esky-fetch
-基于fetch的全平台兼容库，同时具备良好的开发体验
+# 网络组件Fetch
+
+## 目录
+1. src 源码
+2. es ES6模块
+3. lib commonjs模块
