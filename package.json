@@ -17,6 +17,10 @@
 		"babel-preset-stage-1": "^6.5.0",
 		"cross-env": "^5.0.1"
 	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/esky/esky-fetch"
+	},
 	"author": "esky",
 	"license": "ISC"
 }
